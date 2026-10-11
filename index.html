@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>42 jours dans l'Ouest américain</title>
+<link rel="stylesheet" href="lib/leaflet.css">
+<style>
+@font-face{font-family:"Archivo Narrow";font-weight:700;src:url(lib/fonts/archivo-narrow-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Public Sans";font-weight:400;src:url(lib/fonts/public-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Public Sans";font-weight:600;src:url(lib/fonts/public-sans-latin-600-normal.woff2) format("woff2")}
+:root{--paper:#F3F5F2;--ink:#17211B;--muted:#5B665F;--pine:#2F5D46;--sky:#3D7BA8;--ochre:#D9A21B;--line:#D5DBD4}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Public Sans",system-ui,sans-serif;color:var(--ink);background:var(--paper);font-size:16px;line-height:1.55}
+.app{display:grid;grid-template-columns:minmax(340px,440px) 1fr;height:100vh}
+aside{overflow-y:auto;border-right:1px solid var(--line);background:#fff}
+#map{height:100%;background:#CFDFE6}
+header{padding:2rem 1.75rem 1.5rem;background:var(--pine);color:#fff}
+h1{font-family:"Archivo Narrow",sans-serif;font-weight:700;font-size:2.6rem;line-height:1;margin:0 0 .6rem}
+header p{margin:0;color:#D7E5DC;font-size:.95rem;max-width:34ch}
+.legend{display:flex;gap:1.25rem;margin-top:1.1rem;font-size:.85rem;color:#D7E5DC}
+.legend b{display:block;font-family:"Archivo Narrow",sans-serif;font-size:1.6rem;color:#fff;line-height:1.1}
+h2{font-family:"Archivo Narrow",sans-serif;font-weight:700;font-size:1.15rem;margin:0;padding:1.4rem 1.75rem .5rem;color:var(--pine)}
+ol{list-style:none;margin:0;padding:0}
+.step{display:grid;grid-template-columns:34px 1fr;gap:.85rem;padding:1rem 1.75rem;border-top:1px solid var(--line);cursor:pointer}
+.step:hover{background:#F7F9F7}
+.step.on{background:#FBF4E2}
+.step:focus-visible{outline:2px solid var(--sky);outline-offset:-2px}
+.night{font-size:.8rem;color:var(--muted);margin:0}
+.name{font-family:"Archivo Narrow",sans-serif;font-weight:700;font-size:1.25rem;line-height:1.2;margin:.1rem 0 .3rem}
+.note{margin:0;font-size:.93rem}
+.drive{margin:.35rem 0 0;font-size:.82rem;color:var(--muted)}
+.photo{margin-top:.7rem;aspect-ratio:16/10;background:#E6EBE6;border-radius:4px;overflow:hidden}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.thumbs{display:flex;gap:6px;margin-top:6px}
+.thumbs button{flex:1;padding:0;border:2px solid transparent;border-radius:3px;overflow:hidden;aspect-ratio:4/3;cursor:pointer;background:#E6EBE6}
+.thumbs button.on{border-color:var(--ochre)}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.photo span{display:flex;height:100%;align-items:center;justify-content:center;text-align:center;padding:1rem;font-size:.8rem;color:var(--muted)}
+.tips{padding:1.25rem 1.75rem 2.5rem;border-top:1px solid var(--line);font-size:.9rem}
+.tips h3{font-family:"Archivo Narrow",sans-serif;font-size:1.1rem;margin:0 0 .5rem;color:var(--pine)}
+.tips p{margin:.4rem 0}
+.shield{width:30px;height:34px;display:block}
+.shield path{fill:#fff;stroke:var(--pine);stroke-width:2}
+.shield text{font-family:"Archivo Narrow",sans-serif;font-weight:700;font-size:12px;fill:var(--pine)}
+.on .shield path{fill:var(--ochre);stroke:var(--ink)}
+.on .shield text{fill:var(--ink)}
+.mk{background:none;border:none}
+.st{font-family:"Archivo Narrow",sans-serif;font-size:13px;color:#7C8A81;background:none;border:none;box-shadow:none;letter-spacing:.04em}
+.st::before{display:none}
+.leaflet-popup-content{font-family:"Public Sans",sans-serif;margin:12px 14px}
+.pop img{width:240px;height:150px;object-fit:cover;border-radius:3px;display:block;margin-bottom:.5rem}
+.pop b{font-family:"Archivo Narrow",sans-serif;font-size:1.1rem}
+@media (max-width:820px){
+.app{grid-template-columns:1fr;grid-template-rows:48vh 1fr;height:auto}
+#map{height:48vh;position:sticky;top:0;z-index:1}
+aside{border-right:none;overflow:visible}
+h1{font-size:2.1rem}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+<header>
+<h1>42 jours dans l'Ouest américain</h1>
+<p>Une boucle en mai au départ de San Francisco : la côte de l'Oregon, la forêt d'Olympic, Yellowstone et le Wyoming, les canyons de l'Utah (Arches, Bryce, Zion), Monument Valley, le désert d'Arizona, Palm Springs et toute la Pacific Coast Highway pour finir.</p>
+<div class="legend"><span><b>37</b>étapes</span><span><b>8</b>États</span><span><b>~12 000</b>km</span></div>
+</header>
+<div id="list"></div>
+<div class="tips">
+<h3>À savoir pour mai</h3>
+<p>La Highway 1 entre Cambria et Big Sur est régulièrement coupée par des glissements de terrain. Vérifier l'état de la route sur le site de Caltrans avant de partir ; si elle est fermée, prendre la 101 jusqu'à Monterey et visiter Big Sur par le nord.</p>
+<p>Bryce Canyon est à 2 400 m : il peut y neiger début mai. The Narrows, à Zion, est souvent fermé en mai à cause du débit de la Virgin River. Antelope Canyon ne se visite qu'avec un guide, à réserver.</p>
+<p>Hurricane Ridge, dans Olympic, n'est pas toujours accessible au printemps.</p>
+<p>Début mai, Crater Lake est encore sous la neige : seul le belvédère de Rim Village est accessible.</p>
+<p>Fin mai, il fait 38 °C ou plus en Arizona et à Palm Springs. Randonnées à l'aube, et beaucoup d'eau à Joshua Tree.</p>
+<p>Le tracé sur la carte relie les étapes à vol d'oiseau, les temps de route indiqués sont ceux par la route.</p>
+</div>
+</aside>
+<div id="map" role="region" aria-label="Carte de l'itinéraire"></div>
+</div>
+
+<script src="lib/leaflet.js"></script>
+<script src="lib/topojson-client.min.js"></script>
+<script src="data/states.js"></script>
+<script src="data/etapes.js"></script>
+<script src="data/photos.js"></script>
+<script>
+const S=window.ETAPES;
+const WEST=['California','Oregon','Washington','Idaho','Montana','Wyoming','Nevada','Utah','Arizona'];
+const pad=i=>String(i+1).padStart(2,'0');
+const shield=n=>`<svg class="shield" viewBox="0 0 30 34" aria-hidden="true"><path d="M3 4 Q15 0 27 4 L27 9 Q29 23 15 32 Q1 23 3 9 Z"/><text x="15" y="18" text-anchor="middle" dominant-baseline="middle">${n}</text></svg>`;
+
+const map=L.map('map',{zoomSnap:.25,minZoom:4,maxZoom:10,attributionControl:false});
+const pts=S.map(s=>[s.lat,s.lon]);
+map.fitBounds(pts,{padding:[30,30]});
+const states=topojson.feature(window.STATES,window.STATES.objects.states);
+L.geoJSON(states,{style:f=>{const w=WEST.includes(f.properties.name);return{color:'#A9B8AE',weight:1,fillColor:w?'#FBFCFA':'#E3E9E4',fillOpacity:1};},
+onEachFeature:(f,l)=>{if(WEST.includes(f.properties.name))l.bindTooltip(f.properties.name,{permanent:true,direction:'center',className:'st'});},interactive:false}).addTo(map);
+L.polyline(pts,{color:'#2F5D46',weight:3,opacity:.75,dashArray:'6 6',interactive:false}).addTo(map);
+
+const markers=[],rows=[];
+const P=window.PHOTOS||{};
+const pics=i=>P[String(i+1)]||[];
+const img=i=>pics(i)[0];
+function gallery(i){const a=pics(i);if(!a.length)return '<div class="photo"><span>Pas encore de photo : lance telecharger-photos.py</span></div>';
+return `<div class="photo"><img loading="lazy" src="${a[0]}" alt="${S[i].nom}"></div>`+(a.length>1?`<div class="thumbs">${a.map((u,k)=>`<button type="button" class="${k?'':'on'}" data-src="${u}" aria-label="Photo ${k+1}"><img loading="lazy" src="${u}" alt=""></button>`).join('')}</div>`:'');}
+const list=document.getElementById('list');
+let region=null,ol;
+S.forEach((s,i)=>{
+if(s.region!==region){region=s.region;const h=document.createElement('h2');h.textContent=region;list.appendChild(h);ol=document.createElement('ol');list.appendChild(ol);}
+const li=document.createElement('li');li.className='step';li.tabIndex=0;
+li.innerHTML=`${shield(i+1)}<div><p class="night">${s.nuit}</p><p class="name">${s.nom}</p><p class="note">${s.texte}</p><p class="drive">Route : ${s.route}</p>${gallery(i)}</div>`;
+li.querySelectorAll('.thumbs button').forEach(b=>b.onclick=e=>{e.stopPropagation();li.querySelector('.photo img').src=b.dataset.src;li.querySelectorAll('.thumbs button').forEach(x=>x.classList.toggle('on',x===b));});
+li.onclick=()=>select(i,true);
+li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(i,true);}};
+ol.appendChild(li);rows.push(li);
+if(i<S.length-1){
+const m=L.marker([s.lat,s.lon],{icon:L.divIcon({className:'mk',html:shield(i+1),iconSize:[30,34],iconAnchor:[15,30],popupAnchor:[0,-28]}),title:s.nom}).addTo(map);
+m.on('click',()=>select(i,false));markers.push(m);
+}
+});
+
+function select(i,fromList){
+rows.forEach((r,j)=>r.classList.toggle('on',j===i));
+const mi=i===S.length-1?0:i;
+markers.forEach((m,j)=>{const el=m.getElement();if(el)el.classList.toggle('on',j===mi);});
+const s=S[i];
+markers[mi].bindPopup(`<div class="pop">${img(i)?`<img src="${img(i)}" alt="${s.nom}">`:''}<span style="font-size:.8rem;color:#5B665F">${s.nuit}</span><br><b>${s.nom}</b><p style="margin:.3rem 0 0">${s.texte}</p></div>`,{maxWidth:270}).openPopup();
+if(fromList)map.flyTo([s.lat,s.lon],Math.max(map.getZoom(),7),{duration:.8});
+else rows[i].scrollIntoView({behavior:'smooth',block:'center'});
+}
+</script>
+</body>
+</html>

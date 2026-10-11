@@ -1,0 +1,13 @@
+ROAD TRIP OUEST AMÉRICAIN - 42 JOURS
+
+Pour regarder : dézippe le dossier, puis ouvre index.html (double-clic).
+Tout marche sans connexion internet.
+
+Pour Tom, avant d'envoyer (une seule fois, avec internet) :
+1. Ouvre un terminal dans ce dossier et lance :  python3 telecharger-photos.py
+   (sous Windows :  py telecharger-photos.py)
+   Le script met jusqu'à 4 photos par étape dans photos/.
+2. Pour ajouter tes propres photos : mets-les dans photos/ avec le numéro de
+   l'étape devant (ex. 05-moi.jpg, numéros de 01 à 37), supprime celles que tu n'aimes pas, puis
+   relance le script pour mettre à jour la page.
+3. Recompresse le dossier road-trip-usa en zip et envoie-le.
